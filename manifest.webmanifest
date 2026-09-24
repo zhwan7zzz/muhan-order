@@ -1,0 +1,30 @@
+{
+ "name": "무한매수 주문장",
+ "short_name": "무한매수",
+ "description": "무한매수법 V4.0 체결 기록과 다음 거래일 주문 계산",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "lang": "ko",
+ "background_color": "#F2F4F7",
+ "theme_color": "#0F1B2D",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

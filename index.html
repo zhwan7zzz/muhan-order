@@ -1,0 +1,495 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0F1B2D"><meta name="robots" content="noindex,nofollow"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><style>html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style></head><body><title>무한매수 주문장</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#F2F4F7; --surface:#FFFFFF; --ink:#0F1B2D; --muted:#5B6B82; --line:#DCE2EA; --soft:#E9EDF3;
+  --buy:#D43C2F; --buy-bg:#FCECEA; --sell:#1F5FD1; --sell-bg:#E8F0FD; --warn:#B45309; --warn-bg:#FFF4E0; --ok:#157F5B;
+  --sans:'IBM Plex Sans KR',system-ui,-apple-system,'Malgun Gothic',sans-serif; --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --ground:#0A111C; --surface:#131D2C; --ink:#E8EDF5; --muted:#93A1B5; --line:#243247; --soft:#1B2738;
+  --buy:#FF7A6B; --buy-bg:#3A1D1C; --sell:#78A9FF; --sell-bg:#15294A; --warn:#F5B455; --warn-bg:#3A2A10; --ok:#4FD1A1; } }
+:root[data-theme="dark"]{
+  --ground:#0A111C; --surface:#131D2C; --ink:#E8EDF5; --muted:#93A1B5; --line:#243247; --soft:#1B2738;
+  --buy:#FF7A6B; --buy-bg:#3A1D1C; --sell:#78A9FF; --sell-bg:#15294A; --warn:#F5B455; --warn-bg:#3A2A10; --ok:#4FD1A1; }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%}
+.app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding-inline:16px;padding-block:0 84px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--sell);outline-offset:2px}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--ground);padding-block:14px 10px;display:flex;flex-direction:column;gap:8px}
+.top-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.ticker{font-weight:700;font-size:20px;letter-spacing:-.01em}
+.ticker small{font-weight:500;color:var(--muted);font-size:13px;margin-left:6px}
+.phase{font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--soft);white-space:nowrap}
+.phase.rev{background:var(--warn-bg);color:var(--warn)}
+.tbar{position:relative;height:6px;border-radius:3px;background:var(--soft);overflow:hidden}
+.tbar i{position:absolute;inset:0 auto 0 0;background:var(--ink);border-radius:3px}
+.tbar b{position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--ground)}
+.tmeta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+.banner{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13.5px;font-weight:500;margin-bottom:12px}
+h2{font-size:13px;font-weight:600;color:var(--muted);margin:18px 0 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+h2 strong{color:var(--ink);font-size:17px;font-weight:700}
+
+.ticket{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ord{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.ord:first-child{border-top:0}
+.side{grid-row:span 2;font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;align-self:start;margin-top:2px}
+.side.buy{background:var(--buy-bg);color:var(--buy)} .side.sell{background:var(--sell-bg);color:var(--sell)}
+.how{font-weight:600;font-size:14px}
+.px{font-size:19px;font-weight:600;text-align:right;white-space:nowrap}
+.px em{font-style:normal;font-size:13px;color:var(--muted);font-weight:500;margin-left:4px}
+.note{grid-column:2 / 4;font-size:12px;color:var(--muted)}
+.ladder{padding:12px 14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.ladder span{font-size:12px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips i{font-style:normal;font-size:13px;padding:3px 8px;border-radius:6px;background:var(--buy-bg);color:var(--buy)}
+.empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:14px}
+
+.actions{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:12px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:13px 12px;font-weight:600;font-size:15px}
+.btn.primary{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.btn.danger{color:var(--buy)} .btn.small{padding:9px 12px;font-size:13.5px;border-radius:10px}
+.btn:active{transform:translateY(1px)}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.stat{background:var(--surface);padding:10px 14px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.stat span{font-size:12px;color:var(--muted)} .stat b{font-size:16px;font-weight:600;overflow-wrap:anywhere}
+.up{color:var(--buy)} .down{color:var(--sell)}
+
+.log{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.day{display:grid;grid-template-columns:64px 1fr auto;gap:2px 10px;padding:11px 14px;border-top:1px solid var(--line);background:none;border-inline:0;border-bottom:0;text-align:left;width:100%}
+.day:first-child{border-top:0}
+.day .d{font-weight:600;font-size:14px} .day .c{font-size:12px;color:var(--muted)}
+.day .f{font-size:13.5px} .day .t{font-size:13px;color:var(--muted);text-align:right;white-space:nowrap}
+.day .chk{grid-column:2 / 4;font-size:12px;color:var(--warn)}
+.tag{font-size:11.5px;font-weight:600;padding:1px 6px;border-radius:5px;background:var(--soft);margin-left:4px;white-space:nowrap}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs div{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+.tabs button{border:0;background:none;padding:12px 0 11px;font-size:13px;font-weight:600;color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 2px 0 var(--ink)}
+
+.sheet-bg{position:fixed;inset:0;z-index:20;background:rgba(8,14,24,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:480px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.sheet h3{margin:0;font-size:17px;display:flex;justify-content:space-between;align-items:center}
+.x{border:0;background:var(--soft);border-radius:999px;width:32px;height:32px;font-size:16px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);font-weight:500;min-width:0}
+input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--ground);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+input.num{font-family:var(--mono)}
+fieldset{border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+legend{font-size:12.5px;font-weight:700;padding:0 6px} legend.buy{color:var(--buy)} legend.sell{color:var(--sell)}
+.hint{font-size:13px;background:var(--soft);border-radius:10px;padding:9px 12px}
+.hint.bad{background:var(--warn-bg);color:var(--warn)}
+details summary{font-size:13px;color:var(--muted);cursor:pointer;padding:4px 0}
+.set{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.fine{font-size:12.5px;color:var(--muted)} .fine b{color:var(--ink)}
+textarea{font-family:var(--mono);font-size:12px;width:100%;height:110px;border:1px solid var(--line);border-radius:10px;background:var(--ground);color:var(--ink);padding:8px}
+.grid{display:flex;flex-direction:column;min-width:0}
+.grid > section{min-width:0}
+/* 넓은 화면(메인 화면 3:4·4:3, 커버 화면 가로 16:10): 주문 | 현황 두 칸 */
+@media (min-width:600px){
+  .app{max-width:1040px;padding-inline:24px}
+  .tabs div{max-width:1040px}
+  .grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);column-gap:24px;align-items:start}
+  .set .row2{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .sheet-bg{align-items:center;padding:16px}
+  .sheet{max-width:560px;border-radius:18px;max-height:100%}
+}
+/* 세로가 짧은 가로 화면(커버 화면 16:10 가로): 머리와 탭을 낮춘다 */
+@media (orientation:landscape) and (max-height:520px){
+  .top{position:static;padding-block:8px 4px;gap:5px}
+  .ticker{font-size:17px}
+  .tabs button{padding:8px 0 7px}
+  .app{padding-block:0 56px}
+  h2{margin:12px 0 6px}
+  .ord{padding:9px 14px}
+  .px{font-size:17px}
+  .sheet-bg{padding:8px}
+}
+.toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:var(--ink);color:var(--ground);padding:9px 16px;border-radius:999px;font-size:13.5px;font-weight:500;white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){ .sheet{animation:up .18s ease-out} @keyframes up{from{transform:translateY(24px);opacity:.6}} }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="top-row"><div class="ticker" id="hd-ticker"></div><div class="phase" id="hd-phase"></div></div>
+    <div class="tbar" aria-hidden="true"><i id="hd-bar"></i><b></b></div>
+    <div class="tmeta"><span id="hd-t" class="num"></span><span id="hd-sync"></span></div>
+  </header>
+  <main id="view"></main>
+</div>
+<nav class="tabs"><div role="tablist">
+  <button role="tab" id="tab-order" data-tab="order">주문</button>
+  <button role="tab" id="tab-log" data-tab="log">기록</button>
+  <button role="tab" id="tab-set" data-tab="set">설정</button>
+</div></nav>
+<div id="sheet-root"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// 무한매수법 V4.0 계산 엔진 — 엑셀(무한매수법_V4_기록) '기록' 시트의 열 수식을 그대로 옮긴 것.
+// 규칙을 바꿀 때는 build.py(엑셀)와 이 파일을 같이 고치고 test_engine.js로 대조한다.
+(function (root) {
+  const RULES_VERSION = "V4.0 · 2026-09-21";
+
+  // Excel ROUND(0.5는 0에서 먼 쪽) / ROUNDDOWN(x,2) — verify.py의 xround, fl2와 동일
+  const xround = (x, n = 2) => { const m = 10 ** n; return Math.sign(x) * Math.floor(Math.abs(x) * m + 0.5 + 1e-9) / m; };
+  const fl2 = (x) => Math.floor(x * 100 + 1e-9) / 100;
+  const isNum = (v) => typeof v === "number" && isFinite(v);
+  const num = (v) => (isNum(v) ? v : 0);
+
+  function derive(cfg) {
+    const a = cfg.ticker === "SOXL" ? 20 : 15;
+    return { a, b: (2 * a) / cfg.N };
+  }
+
+  function initState(cfg) {
+    return { O: 0, U: 0, V: 0, W: 0, X: 0, Y: cfg.seed, Z: 0, AA: "일반", AB: "첫매수", AC: null, AD: null,
+      AE: cfg.seed / cfg.N, AF: null, AG: null, AH: null, AI: null, AJ: null, AK: null, AL: null, AM: 0, check: "" };
+  }
+
+  // rows: [{d, c, bq, bp, sq, sp, ov, cashSet, memo}] → 각 행의 마감 후 상태(엑셀 L~AN열)
+  function compute(cfg, rows) {
+    const { a, b } = derive(cfg), N = cfg.N;
+    const out = []; let p = initState(cfg);
+    rows.forEach((r, i) => {
+      const bq = num(r.bq), bp = num(r.bp), sq = num(r.sq), sp = num(r.sp);
+      const L = isNum(r.c) ? r.c : null;
+      const s = { N: p.AA };
+      s.O = p.U === 0 && bq > 0 ? p.O + 1 : p.O;
+      s.P = bq * bp; s.Q = sq * sp; s.R = xround((s.P + s.Q) * cfg.fee);
+      s.U = p.U + bq - sq;
+      s.S = sq === 0 ? "" : s.U === 0 ? "전량매도(종료)" : s.N !== "일반" ? "리버스매도" : sp >= num(p.AK) - 0.005 ? "지정가매도" : "쿼터매도";
+      s.T = bq === 0 ? "" : s.N !== "일반" ? "쿼터매수" : r.ov ? r.ov : bq > p.AM ? "1회" : "절반";
+      s.V = s.U === 0 ? 0 : p.V - sq * p.W + s.P;
+      s.W = s.U === 0 ? 0 : s.V / s.U;
+      s.X = sq === 0 ? 0 : s.Q - sq * p.W;
+      s.Y = isNum(r.cashSet) ? r.cashSet : s.U === 0 && sq > 0 && !cfg.comp ? cfg.seed : p.Y - s.P + s.Q - s.R;
+      if (s.U === 0) s.Z = 0;
+      else if (s.N === "일반") s.Z = p.Z * (s.S === "지정가매도" ? 0.25 : s.S === "쿼터매도" ? 0.75 : 1) + (s.T === "1회" ? 1 : s.T === "절반" ? 0.5 : 0);
+      else { const t1 = p.Z * (sq > 0 ? 1 - 2 / N : 1); s.Z = bq > 0 ? t1 + (N - t1) * 0.25 : t1; }
+      // 다음 거래일 모드
+      if (s.U === 0) s.AA = "일반";
+      else if (s.N === "일반") s.AA = s.Z > N - 1 ? "리버스1" : "일반";
+      else if (s.N === "리버스1" && sq === 0) s.AA = "리버스1";
+      else if (L !== null && L > s.W * (1 - a / 100)) s.AA = s.Z > N - 1 ? "리버스1" : "일반";
+      else s.AA = "리버스";
+      s.AC = s.U === 0 || s.AA !== "일반" ? null : (a - b * s.Z) / 100;
+      // 별지점
+      s.AD = null;
+      if (s.U > 0) {
+        if (s.AA === "일반") s.AD = xround(s.W * (1 + s.AC));
+        else if (s.AA === "리버스" && i >= 4) {
+          const last5 = rows.slice(i - 4, i + 1).map((x) => x.c);
+          if (last5.every(isNum)) s.AD = xround(last5.reduce((x, y) => x + y, 0) / 5);
+        }
+      }
+      s.AE = s.U === 0 ? s.Y / N : s.AA === "일반" ? s.Y / (N - s.Z) : s.AA === "리버스" ? s.Y / 4 : 0;
+      s.AF = s.U === 0 || s.AD === null ? null : xround(s.AD - 0.01);
+      const firstHalf = s.AA === "일반" && s.Z < N / 2;
+      s.AG = s.AF === null ? null : Math.floor((firstHalf ? s.AE / 2 : s.AE) / s.AF);
+      s.AB = s.U === 0 ? "첫매수" : s.AA === "리버스1" ? "리버스 첫날"
+        : s.AA === "리버스" ? (s.AD !== null && num(s.AG) === 0 ? "리버스 소진" : "리버스") : firstHalf ? "전반전" : "후반전";
+      s.AH = s.AB === "전반전" ? Math.min(xround(s.W), s.AF) : null;
+      s.AI = s.AB === "전반전" ? Math.max(0, Math.floor(s.AE / s.AH) - s.AG) : null;
+      if (s.U === 0) s.AJ = null;
+      else if (s.AA === "일반") { const q = s.U / 4; s.AJ = cfg.rmode === "올림" ? Math.ceil(q) : cfg.rmode === "반올림" ? Math.floor(q + 0.5) : Math.floor(q); }
+      else s.AJ = Math.max(1, Math.floor(s.U / (N / 2)));
+      s.AK = s.U === 0 || s.AA !== "일반" ? null : xround(s.W * (1 + a / 100));
+      s.AL = s.AK === null ? null : s.U - s.AJ;
+      s.AM = s.AB === "전반전" ? s.AG : 0;
+      // 점검 (엑셀 AN열과 같은 순서)
+      const f2 = (v) => v.toFixed(2), mocDay = s.N === "리버스1" || p.AB === "리버스 소진";
+      if ((bq > 0 && bp <= 0) || (bq === 0 && bp > 0) || (sq > 0 && sp <= 0) || (sq === 0 && sp > 0)) s.check = "[!] 수량과 단가를 함께 입력";
+      else if (sq > p.U) s.check = "[!] 매도수량이 보유수량보다 많음";
+      else if (s.P + s.R > p.Y + s.Q + 0.005) s.check = "[!] 매수금이 잔금보다 많음";
+      else if (mocDay && bq > 0) s.check = "[!] 매수 주문이 없는 날인데 매수가 입력됨";
+      else if (mocDay && sq === 0) s.check = "[!] MOC 매도 체결 확인";
+      else if (bq > 0 && isNum(p.AF) && bp > p.AF + 0.005) s.check = "[!] 매수단가가 매수점 " + f2(p.AF) + "보다 높음";
+      else if (sq > 0 && isNum(p.AD) && p.AB !== "리버스 소진" && sp < p.AD - 0.005) s.check = "[!] 매도단가가 별지점 " + f2(p.AD) + "보다 낮음";
+      else if (bq === 0 && L !== null && isNum(p.AF) && L <= p.AF && num(p.AG) + num(p.AI) > 0) s.check = "[!] 종가가 매수점 " + f2(p.AF) + " 이하 — 매수 체결 확인";
+      else if (sq === 0 && L !== null && isNum(p.AD) && L >= p.AD && num(p.AJ) > 0) s.check = "[!] 종가가 별지점 " + f2(p.AD) + " 이상 — 매도 체결 확인";
+      else s.check = "OK";
+      out.push(s); p = s;
+    });
+    return out;
+  }
+
+  // 마지막 상태 → 다음 거래일 주문표 (엑셀 '주문' 시트)
+  function plan(cfg, rows, states) {
+    const { a } = derive(cfg);
+    const st = states.length ? states[states.length - 1] : initState(cfg);
+    let base = isNum(cfg.baseClose) ? cfg.baseClose : null;
+    if (base === null) for (let i = rows.length - 1; i >= 0; i--) if (isNum(rows[i].c)) { base = rows[i].c; break; }
+    const ph = st.AB, B = st.AE, o = { phase: ph, T: st.Z, B, star: st.AD, base, a, buys: [], sells: [], ladder: [], warn: "" };
+    const big = base === null ? null : xround(base * (1 + cfg.big));
+    if (ph === "첫매수") {
+      if (big !== null) o.buys.push({ label: "매수①", how: "LOC 매수 (큰수)", price: big, qty: Math.floor(B / big), note: "전일 종가 +" + Math.round(cfg.big * 100) + "%. 체결가는 그날 종가" });
+      else o.warn = "기준 종가가 없습니다. 설정에서 전일 종가를 넣으세요.";
+    } else if (ph === "전반전" || ph === "후반전") {
+      o.buys.push({ label: "매수①", how: "LOC 매수 (별지점−0.01)", price: st.AF, qty: st.AG, note: ph === "전반전" ? "1회 매수금의 절반" : "1회 매수금 전액" });
+      if (ph === "전반전") o.buys.push({ label: "매수②", how: "LOC 매수 (평단)", price: st.AH, qty: st.AI, note: "평단 이하로 마감하면 ①과 함께 체결 → 1회" });
+      o.sells.push({ label: "매도①", how: "LOC 매도 (쿼터매도)", price: st.AD, qty: st.AJ, note: "보유수량의 1/4" });
+      o.sells.push({ label: "매도②", how: "지정가 매도 (평단 +" + a + "%)", price: st.AK, qty: st.AL, note: "프리장 시작 시각에 주문 (서머타임 17시 · 그 외 18시)" });
+      if (num(st.AG) + num(st.AI) === 0) o.warn = "1회 매수금이 주가보다 작아 기본 매수 수량이 0입니다 (하락 대비 주문만 나갑니다).";
+    } else if (ph === "리버스 첫날" || ph === "리버스 소진") {
+      o.sells.push({ label: "매도①", how: "MOC 매도 (무조건)", price: null, qty: st.AJ, note: "보유수량의 1/" + cfg.N / 2 + (ph === "리버스 소진" ? " · 쿼터매수가 불가능해 무조건 매도" : " · 첫날은 매수 없음") });
+    } else if (ph === "리버스") {
+      if (st.AD === null) o.warn = "리버스 별지점은 최근 5거래일 종가가 모두 있어야 계산됩니다.";
+      else {
+        o.buys.push({ label: "매수①", how: "LOC 매수 (쿼터매수 · 별지점−0.01)", price: st.AF, qty: st.AG, note: "잔금의 1/4" });
+        o.sells.push({ label: "매도①", how: "LOC 매도 (별지점 = 5일 종가 평균)", price: st.AD, qty: st.AJ, note: "보유수량의 1/" + cfg.N / 2 });
+      }
+    }
+    if (o.buys.length && big !== null && ph !== "첫매수" && o.buys[0].price > big) o.buys[0].note += " · 증권사가 거부하면 큰수 " + big.toFixed(2) + "로 대체";
+    if (o.buys.length && B > 0) {
+      const n = o.buys.reduce((x, y) => x + num(y.qty), 0);
+      for (let k = 1; k <= 8; k++) { const pr = fl2(B / (n + k)); if (base === null || pr >= base * (1 - cfg.ladderFloor)) o.ladder.push(pr); }
+    }
+    if (states.length && st.check.startsWith("[!]")) o.warn = "마지막 기록을 확인하세요 → " + st.check;
+    return o;
+  }
+
+  // 종가(와 선택적으로 장중 고가)로 전날 주문의 예상 체결을 계산 — 입력 도우미. 증권사 체결 내역이 우선한다.
+  function predictFills(pl, close, high) {
+    let bq = 0, sq = 0, samt = 0;
+    pl.buys.forEach((o) => { if (num(o.qty) > 0 && close <= o.price) bq += o.qty; });
+    if (pl.buys.length) pl.ladder.forEach((pr) => { if (close <= pr) bq += 1; });
+    pl.sells.forEach((o) => {
+      if (!(num(o.qty) > 0)) return;
+      if (o.how.startsWith("MOC")) { sq += o.qty; samt += o.qty * close; }
+      else if (o.how.startsWith("LOC")) { if (close >= o.price) { sq += o.qty; samt += o.qty * close; } }
+      else if (isNum(high) ? high >= o.price : close >= o.price) { sq += o.qty; samt += o.qty * o.price; }
+    });
+    return { bq, bp: bq ? close : null, sq, sp: sq ? samt / sq : null };
+  }
+
+  // 미국 증시 정기 휴장일 (엑셀 '휴장일' 시트와 같은 규칙)
+  const D = (y, m, d) => new Date(Date.UTC(y, m - 1, d));
+  const wd = (dt) => (dt.getUTCDay() + 6) % 7 + 1; // 월=1 … 일=7
+  const add = (dt, n) => new Date(dt.getTime() + n * 86400000);
+  const iso = (dt) => dt.toISOString().slice(0, 10);
+  function easter(y) { // 그레고리력 부활절
+    const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
+      g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4,
+      l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const mo = Math.floor((h + l - 7 * m + 114) / 31), da = ((h + l - 7 * m + 114) % 31) + 1;
+    return D(y, mo, da);
+  }
+  function holidays(y) {
+    const obs = (m, d) => { const x = D(y, m, d), w = wd(x); return add(x, w === 6 ? -1 : w === 7 ? 1 : 0); };
+    const nthMon = (m, n) => add(D(y, m, 1), (8 - wd(D(y, m, 1))) % 7 + 7 * (n - 1));
+    const ny = D(y, 1, 1);
+    return [add(ny, wd(ny) === 7 ? 1 : 0), nthMon(1, 3), nthMon(2, 3), add(easter(y), -2),
+      add(D(y, 5, 31), -((wd(D(y, 5, 31)) - 1) % 7)), obs(6, 19), obs(7, 4), nthMon(9, 1),
+      add(D(y, 11, 1), (4 - wd(D(y, 11, 1)) + 7) % 7 + 21), obs(12, 25)].map(iso);
+  }
+  function nextTradingDay(isoDate) {
+    let dt = add(new Date(isoDate + "T00:00:00Z"), 1);
+    for (;;) { if (wd(dt) <= 5 && !holidays(dt.getUTCFullYear()).includes(iso(dt))) return iso(dt); dt = add(dt, 1); }
+  }
+
+  const api = { RULES_VERSION, compute, plan, predictFills, initState, holidays, nextTradingDay, xround };
+  if (typeof module !== "undefined" && module.exports) module.exports = api; else root.IMB = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function(){
+const E = window.IMB, $ = (s, r=document) => r.querySelector(s);
+const DEF = { ticker:"TQQQ", N:20, seed:4000, comp:true, big:0.12, fee:0.001, rmode:"내림", ladderFloor:0.5, baseClose:null, startDate:new Date().toISOString().slice(0,10) };
+let S = { cfg:{...DEF}, rows:[] }, tab = "order", db = null, docRef = null, saving = Promise.resolve(), synced = "기기";
+const LS = "imb-state-v1";
+try { const c = JSON.parse(localStorage.getItem(LS)); if (c && c.cfg) S = c; } catch(e){}
+
+const f2 = v => v==null||!isFinite(v) ? "–" : v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const f0 = v => v==null ? "–" : v.toLocaleString("en-US");
+const esc = s => String(s??"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const dlabel = iso => { const d = new Date(iso+"T00:00:00Z"); return (d.getUTCMonth()+1)+"/"+d.getUTCDate()+"("+"일월화수목금토"[d.getUTCDay()]+")"; };
+const toast = m => { const t=$("#toast"); t.textContent=m; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,1800); };
+const nval = id => { const v = $("#"+id).value.trim(); return v==="" ? null : Number(v); };
+
+function persist(){
+  try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){}
+  if (!docRef) return;
+  const body = JSON.parse(JSON.stringify({ cfg:S.cfg, rows:S.rows, updatedAt:new Date().toISOString() }));
+  saving = saving.then(() => docRef.set(body)).then(() => { synced="동기화됨"; head(); })
+    .catch(e => { synced="저장 실패"; head(); toast(e && e.code==="invalid_argument" ? "쓰기 권한이 없어 이 기기에만 저장했습니다" : "서버 저장 실패 — 이 기기에는 저장됨"); });
+}
+function calc(){ const st = E.compute(S.cfg, S.rows); return { st, pl:E.plan(S.cfg, S.rows, st), last: st.length ? st[st.length-1] : E.initState(S.cfg) }; }
+function nextDate(){ return S.rows.length ? E.nextTradingDay(S.rows[S.rows.length-1].d) : S.cfg.startDate; }
+
+function head(){
+  const { last } = calc();
+  $("#hd-ticker").innerHTML = esc(S.cfg.ticker)+"<small>"+S.cfg.N+"분할 · "+(last.U===0?"대기":"사이클 "+last.O)+"</small>";
+  const ph = $("#hd-phase"); ph.textContent = last.AB; ph.className = "phase"+(last.AB.startsWith("리버스")?" rev":"");
+  $("#hd-bar").style.width = Math.min(100, last.Z/S.cfg.N*100)+"%";
+  $("#hd-t").textContent = "T "+(+last.Z.toFixed(4))+" / "+S.cfg.N+"회";
+  $("#hd-sync").textContent = synced;
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab===tab));
+}
+
+function orderView(){
+  const { pl, last } = calc(), all = [...pl.buys.map(o=>({...o,side:"buy"})), ...pl.sells.map(o=>({...o,side:"sell"}))].filter(o => o.qty>0);
+  const pnl = pl.base!=null && last.U>0 ? last.U*pl.base-last.V : null;
+  return (pl.warn ? '<div class="banner">⚠ '+esc(pl.warn)+'</div>' : '')+
+  '<div class="grid"><section><h2><strong>'+dlabel(nextDate())+' 주문</strong><span>미국 거래일 기준</span></h2>'+
+  '<div class="ticket">'+(all.length ? all.map(o =>
+    '<div class="ord"><span class="side '+o.side+'">'+o.label+'</span><span class="how">'+esc(o.how)+'</span>'+
+    '<span class="px num">'+(o.price==null?"종가":f2(o.price))+'<em>× '+f0(o.qty)+'주</em></span><span class="note">'+esc(o.note)+'</span></div>').join("")
+    : '<div class="empty">오늘 넣을 기본 주문이 없습니다</div>')+
+  (pl.ladder.length ? '<div class="ladder"><span>하락 대비 LOC 매수 · 각 1주 (종가가 이 값 이하면 추가 체결, T 계산은 1회와 같음)</span><div class="chips num">'+pl.ladder.map(p=>'<i>'+f2(p)+'</i>').join("")+'</div></div>' : '')+
+  '</div><div class="actions"><button class="btn" id="copy">주문 복사</button><button class="btn primary" id="add">'+dlabel(nextDate())+' 체결 입력</button></div></section>'+
+  '<section><h2><strong>현황</strong></h2><div class="stats">'+[
+    ["보유", f0(last.U)+"주"], ["평단가", "$"+(last.U?last.W.toFixed(4):"–")], ["잔금", "$"+f2(last.Y)], ["1회 매수금", "$"+f2(pl.B)],
+    ["별%", last.AC==null?"–":(last.AC*100).toFixed(2)+"%"], ["별지점", pl.star==null?"–":"$"+f2(pl.star)],
+    ["기준 종가", pl.base==null?"–":"$"+f2(pl.base)], ["평가손익", pnl==null?"–":'<span class="'+(pnl>=0?"up":"down")+'">'+(pnl>=0?"+":"")+f2(pnl)+" ("+(pnl/last.V*100).toFixed(2)+"%)</span>"]
+  ].map(([k,v])=>'<div class="stat"><span>'+k+'</span><b class="num">'+v+'</b></div>').join("")+'</div></section></div>';
+}
+function orderText(){
+  const { pl, last } = calc();
+  let t = "["+S.cfg.ticker+"] "+dlabel(nextDate())+" 주문 · "+pl.phase+(pl.phase==="첫매수"?"":" · T="+(+last.Z.toFixed(4)))+(pl.star!=null?" · 별지점 "+f2(pl.star):"")+"\n";
+  [...pl.buys, ...pl.sells].filter(o=>o.qty>0).forEach(o => t += o.label+" "+o.how+(o.price==null?"":" "+f2(o.price))+" × "+o.qty+"주\n");
+  if (pl.ladder.length) t += "하락 대비 LOC 매수 1주씩: "+pl.ladder.map(f2).join(", ");
+  return t.trim();
+}
+function logView(){
+  const { st } = calc();
+  const real = st.reduce((a,s)=>a+s.X-s.R,0);
+  if (!S.rows.length) return '<h2><strong>기록</strong></h2><div class="ticket"><div class="empty">아직 기록이 없습니다. 주문 탭에서 체결을 입력하세요.</div></div>';
+  return '<h2><strong>기록 '+S.rows.length+'일</strong><span class="num">누적 실현손익 $'+f2(real)+'</span></h2><div class="log">'+
+  S.rows.map((r,i)=>({r,s:st[i],i})).reverse().map(({r,s,i}) =>
+    '<button class="day" data-i="'+i+'"><span class="d">'+dlabel(r.d)+'</span><span class="f">'+
+      (r.bq? '<span class="up">매수 '+r.bq+'주</span> <span class="num">@'+f2(r.bp)+'</span><span class="tag">'+s.T+'</span> ':'')+
+      (r.sq? '<span class="down">매도 '+r.sq+'주</span> <span class="num">@'+f2(r.sp)+'</span><span class="tag">'+s.S+'</span>':'')+
+      (!r.bq&&!r.sq? '<span style="color:var(--muted)">체결 없음</span>':'')+
+    '</span><span class="t num">T '+(+s.Z.toFixed(3))+'</span><span class="c num">종가 '+f2(r.c)+'</span>'+
+    (s.check.startsWith("[!]")?'<span class="chk">'+esc(s.check)+'</span>':'<span class="chk" style="color:var(--muted)">'+esc(r.memo||"")+'</span>')+'</button>').join("")+'</div>';
+}
+function setView(){
+  const c = S.cfg, opt = (v,cur,l) => '<option value="'+v+'"'+(String(v)===String(cur)?" selected":"")+'>'+(l||v)+'</option>';
+  const tsv = S.rows.map(r => [r.c,r.bq,r.bp,r.sq,r.sp,r.ov,r.cashSet].map(v=>v==null?"":v).join("\t")).join("\n");
+  return '<h2><strong>설정</strong></h2><div class="set">'+
+   '<div class="row2"><label>종목<select id="s-ticker">'+opt("TQQQ",c.ticker)+opt("SOXL",c.ticker)+'</select></label>'+
+   '<label>분할 수<select id="s-N">'+[20,30,40].map(v=>opt(v,c.N)).join("")+'</select></label></div>'+
+   '<div class="row2"><label>설정 시드 ($)<input class="num" id="s-seed" inputmode="decimal" value="'+c.seed+'"></label>'+
+   '<label>재시작 방식<select id="s-comp">'+opt("1",c.comp?"1":"0","복리")+opt("0",c.comp?"1":"0","단리")+'</select></label></div>'+
+   '<div class="row2"><label>시작일 (첫 거래일)<input type="date" id="s-start" value="'+c.startDate+'"></label>'+
+   '<label>수수료율 (편도 %)<input class="num" id="s-fee" inputmode="decimal" value="'+(+(c.fee*100).toFixed(4))+'"></label></div>'+
+   '<div class="row2"><label>첫매수 큰수 (+%)<input class="num" id="s-big" inputmode="decimal" value="'+(+(c.big*100).toFixed(2))+'"></label>'+
+   '<label>쿼터매도 끝수<select id="s-rmode">'+["내림","반올림","올림"].map(v=>opt(v,c.rmode)).join("")+'</select></label></div>'+
+   '<div class="row2"><label>하락 대비 하한 (−%)<input class="num" id="s-floor" inputmode="decimal" value="'+(+(c.ladderFloor*100).toFixed(1))+'"></label>'+
+   '<label>기준 종가 직접입력<input class="num" id="s-base" inputmode="decimal" placeholder="비우면 최근 종가" value="'+(c.baseClose??"")+'"></label></div>'+
+   '<button class="btn primary" id="s-save">설정 저장</button>'+
+   '<p class="fine">시드·분할 수는 사이클 도중에 바꾸면 지난 기록의 T와 잔금이 전부 다시 계산됩니다. 사이클 사이에만 바꾸세요.</p></div>'+
+  '<h2>엑셀로 옮기기</h2><div class="set"><p class="fine">아래 내용을 복사해 엑셀 <b>기록</b> 시트의 <b>D6</b> 칸에 붙여 넣으면 같은 결과가 나옵니다 (종가·매수·매도·판정·잔금 재설정 순).</p>'+
+   '<textarea id="tsv" readonly>'+esc(tsv)+'</textarea><button class="btn small" id="tsv-copy">복사</button></div>'+
+  '<h2>백업 · 복원</h2><div class="set"><p class="fine">기록과 설정 전체를 옮길 때 씁니다. 다른 기기나 설치형 앱으로 옮기려면 여기서 <b>백업 복사</b> → 옮길 곳의 같은 칸에 붙여 넣고 <b>복원</b>.</p>'+
+   '<div class="row2"><button class="btn small" id="bk-copy">백업 복사</button>'+(window.claude?'':'<button class="btn small" id="bk-save">백업 파일 저장</button>')+'</div>'+
+   '<textarea id="bk-in" placeholder="백업 내용을 붙여 넣으세요"></textarea>'+
+   '<label>또는 백업 파일 선택<input type="file" id="bk-file" accept=".json,.txt,application/json,text/plain"></label>'+
+   '<button class="btn small danger" id="bk-restore">붙여 넣은 내용으로 복원 (지금 기록을 덮어씀)</button></div>'+
+  '<h2>규칙</h2><div class="set"><p class="fine">규칙 <b>'+E.RULES_VERSION+'</b> · 라오어 무한매수법 V4.0 원문(일반모드·리버스모드) 기준. 계산 엔진은 엑셀 파일(v2)과 같은 500행 시나리오로 대조해 일치를 확인한 것입니다. 실제 주문 전에는 증권사 앱의 보유수량·평단·예수금과 맞는지 확인하세요. 이 화면은 계산 도구이며 투자 권유가 아닙니다.</p>'+
+   '<button class="btn small danger" id="wipe">기록 전체 삭제</button></div>';
+}
+
+function render(){ head(); $("#view").innerHTML = tab==="order" ? orderView() : tab==="log" ? logView() : setView(); }
+
+function openSheet(i){
+  const edit = i!=null, r = edit ? S.rows[i] : { d:nextDate() }, isLast = edit && i===S.rows.length-1;
+  const prevRows = S.rows.slice(0, edit?i:S.rows.length), pst = E.compute(S.cfg, prevRows), ppl = E.plan(S.cfg, prevRows, pst);
+  const v = k => r[k]==null ? "" : r[k];
+  $("#sheet-root").innerHTML = '<div class="sheet-bg" id="bg"><form class="sheet" id="form" autocomplete="off">'+
+   '<h3>'+(edit?dlabel(r.d)+" 수정":dlabel(r.d)+" 체결 입력")+'<button type="button" class="x" id="close" aria-label="닫기">✕</button></h3>'+
+   '<div class="row2"><label>날짜 (미국 거래일)<input type="date" id="f-d" value="'+r.d+'" required></label>'+
+   '<label>종가 ($)<input class="num" id="f-c" inputmode="decimal" value="'+v("c")+'" placeholder="필수" required></label></div>'+
+   '<div class="hint" id="f-hint">종가를 넣으면 전날 주문의 예상 체결을 보여 줍니다.</div>'+
+   '<button type="button" class="btn small" id="f-fill">예상 체결로 채우기</button>'+
+   '<fieldset><legend class="buy">매수 체결</legend><div class="row2"><label>수량 (주)<input class="num" id="f-bq" inputmode="numeric" value="'+v("bq")+'"></label>'+
+   '<label>평균 단가 ($)<input class="num" id="f-bp" inputmode="decimal" value="'+v("bp")+'"></label></div></fieldset>'+
+   '<fieldset><legend class="sell">매도 체결</legend><div class="row2"><label>수량 (주)<input class="num" id="f-sq" inputmode="numeric" value="'+v("sq")+'"></label>'+
+   '<label>평균 단가 ($)<input class="num" id="f-sp" inputmode="decimal" value="'+v("sp")+'"></label></div></fieldset>'+
+   '<details'+(r.ov||r.cashSet!=null||r.memo?" open":"")+'><summary>고급 (매수 판정 직접 지정 · 잔금 맞추기 · 메모)</summary><div style="display:flex;flex-direction:column;gap:10px;padding-top:8px">'+
+   '<div class="row2"><label>매수 판정<select id="f-ov"><option value="">자동</option><option'+(r.ov==="1회"?" selected":"")+'>1회</option><option'+(r.ov==="절반"?" selected":"")+'>절반</option></select></label>'+
+   '<label>잔금 재설정 ($)<input class="num" id="f-cash" inputmode="decimal" value="'+v("cashSet")+'"></label></div>'+
+   '<label>메모<input id="f-memo" value="'+esc(v("memo"))+'"></label></div></details>'+
+   '<div class="hint" id="f-check" hidden></div>'+
+   '<button class="btn primary" type="submit">저장</button>'+
+   (isLast?'<button type="button" class="btn danger" id="f-del">이 날 기록 삭제</button>':'')+'</form></div>';
+  const draft = () => ({ d:$("#f-d").value, c:nval("f-c"), bq:nval("f-bq"), bp:nval("f-bp"), sq:nval("f-sq"), sp:nval("f-sp"), ov:$("#f-ov").value||null, cashSet:nval("f-cash"), memo:$("#f-memo").value.trim()||null });
+  const refresh = () => {
+    const d = draft(), h = $("#f-hint");
+    if (d.c!=null && isFinite(d.c)) { const p = E.predictFills(ppl, d.c);
+      h.textContent = "예상 체결(종가 기준): "+(p.bq?"매수 "+p.bq+"주 @"+f2(p.bp):"매수 없음")+" · "+(p.sq?"매도 "+p.sq+"주 @"+f2(p.sp):"매도 없음")+(ppl.sells.some(o=>o.how.startsWith("지정가"))?" · 지정가 매도는 장중 체결 여부를 증권사 앱에서 확인":""); }
+    const s = E.compute(S.cfg, [...prevRows, d]).pop(), ck = $("#f-check");
+    ck.hidden = !(d.c!=null) ; ck.className = "hint"+(s.check.startsWith("[!]")?" bad":""); ck.textContent = s.check.startsWith("[!]") ? s.check : "점검 OK · 저장하면 T "+(+s.Z.toFixed(4))+", "+s.AB;
+  };
+  $("#form").addEventListener("input", refresh); refresh();
+  $("#f-fill").onclick = () => { const c = nval("f-c"); if (c==null) return toast("종가를 먼저 넣으세요"); const p = E.predictFills(ppl, c);
+    $("#f-bq").value = p.bq||""; $("#f-bp").value = p.bq?p.bp:""; $("#f-sq").value = p.sq||""; $("#f-sp").value = p.sq?+p.sp.toFixed(4):""; refresh(); };
+  const shut = () => $("#sheet-root").innerHTML = "";
+  $("#close").onclick = shut; $("#bg").onclick = e => { if (e.target.id==="bg") shut(); };
+  $("#form").onsubmit = e => { e.preventDefault(); const d = draft();
+    if (d.c==null || !isFinite(d.c) || d.c<=0) return toast("종가를 넣으세요");
+    if (!edit && S.rows.length && d.d <= S.rows[S.rows.length-1].d) return toast("마지막 기록보다 뒤 날짜여야 합니다");
+    if (edit) S.rows[i] = d; else S.rows.push(d);
+    persist(); shut(); tab = edit ? "log" : "order"; render(); toast("저장했습니다"); };
+  if (isLast) { let armed = false; $("#f-del").onclick = ev => { if (!armed) { armed = true; ev.target.textContent = "한 번 더 누르면 삭제합니다"; return; } S.rows.pop(); persist(); shut(); render(); toast("삭제했습니다"); }; }
+}
+
+function copyText(t){
+  const done = () => toast("복사했습니다");
+  const fallback = () => { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); let ok=false; try { ok = document.execCommand("copy"); } catch(e){} ta.remove(); ok ? done() : toast("복사가 막혀 있습니다 — 길게 눌러 직접 복사하세요"); };
+  navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(t).then(done, fallback) : fallback();
+}
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.tab) { tab = b.dataset.tab; render(); window.scrollTo(0,0); }
+  else if (b.id==="add") openSheet(null);
+  else if (b.id==="copy") copyText(orderText());
+  else if (b.id==="tsv-copy") copyText($("#tsv").value);
+  else if (b.classList.contains("day")) openSheet(+b.dataset.i);
+  else if (b.id==="s-save") {
+    const seed = nval("s-seed"); if (!(seed>0)) return toast("시드를 확인하세요");
+    Object.assign(S.cfg, { ticker:$("#s-ticker").value, N:+$("#s-N").value, seed, comp:$("#s-comp").value==="1", startDate:$("#s-start").value||S.cfg.startDate,
+      fee:(nval("s-fee")||0)/100, big:(nval("s-big")||12)/100, rmode:$("#s-rmode").value, ladderFloor:(nval("s-floor")??50)/100, baseClose:nval("s-base") });
+    persist(); render(); toast("설정을 저장했습니다");
+  }
+  else if (b.id==="bk-copy") copyText(JSON.stringify({ app:"imb", v:1, cfg:S.cfg, rows:S.rows }));
+  else if (b.id==="bk-save") { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({ app:"imb", v:1, cfg:S.cfg, rows:S.rows }, null, 1)], {type:"application/json"}));
+    a.download = "무한매수_백업_"+new Date().toISOString().slice(0,10)+".json"; document.body.appendChild(a); a.click(); a.remove(); }
+  else if (b.id==="bk-restore") {
+    let d; try { d = JSON.parse($("#bk-in").value); } catch(err) { return toast("백업 내용을 읽을 수 없습니다 — 전체를 그대로 붙여 넣으세요"); }
+    const ok = d && typeof d.cfg==="object" && Array.isArray(d.rows) && d.rows.every(r => r && /^\d{4}-\d{2}-\d{2}$/.test(r.d) && typeof r.c==="number");
+    if (!ok) return toast("백업 형식이 아닙니다 (날짜·종가가 빠진 기록이 있음)");
+    if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = d.rows.length+"일 기록으로 덮어씁니다 — 한 번 더 누르세요"; return; }
+    S = { cfg:{...DEF, ...d.cfg}, rows:d.rows.map(r=>({...r})) }; persist(); render(); toast("복원했습니다 ("+S.rows.length+"일)");
+  }
+  else if (b.id==="wipe") { if (b.dataset.armed) { S.rows = []; persist(); render(); toast("기록을 지웠습니다"); } else { b.dataset.armed = "1"; b.textContent = "정말 삭제하려면 한 번 더 누르세요"; } }
+});
+
+document.addEventListener("change", e => {
+  if (e.target.id!=="bk-file" || !e.target.files[0]) return;
+  e.target.files[0].text().then(t => { $("#bk-in").value = t; toast("파일을 불러왔습니다 — 복원을 누르세요"); });
+});
+render();
+(async () => {
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch(e) { db = null; }
+  if (!db) { synced = "이 기기에만 저장"; head(); return; }
+  docRef = db.doc("imb/main");
+  docRef.onSnapshot(snap => {
+    if (snap.metadata && snap.metadata.hasPendingWrites) return;
+    if (snap.exists) { const d = snap.data(); S = { cfg:{...DEF, ...d.cfg}, rows:(d.rows||[]).map(r=>({...r})) }; try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){} }
+    synced = "동기화됨"; if (!$("#form")) render(); else head();
+  }, () => { synced = "연결 끊김"; head(); });
+})();
+})();
+</script>
+<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js"))</script></body></html>
